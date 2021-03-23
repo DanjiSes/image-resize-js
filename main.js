@@ -24,8 +24,10 @@ function resizeImage(file, max_size = 544) {
   return new Promise(function(resolve, reject) {
     try {
       var reader = new FileReader();
+
       reader.onload = function (readerEvent) {
           var image = new Image();
+
           image.onload = function () {
 
               // Resize the image
@@ -51,8 +53,10 @@ function resizeImage(file, max_size = 544) {
               
               resolve({file: resizedImage, base64: dataUrl })
           }
+          
           image.src = readerEvent.target.result;
       }
+
       reader.readAsDataURL(file);
     } catch (e) {
       reject(e)
