@@ -11,44 +11,54 @@ document.addEventListener('DOMContentLoaded', function() {
      * Work
      */
     var file = files[0];
+
+    console.log();
     
-    // Load the image
-    var reader = new FileReader();
-    reader.onload = function (readerEvent) {
-        var image = new Image();
-        image.onload = function (imageEvent) {
-
-            // Resize the image
-            var canvas = document.createElement('canvas'),
-                max_size = 544, // TODO : pull max size from a site config
-                width = image.width,
-                height = image.height;
-            if (width > height) {
-                if (width > max_size) {
-                    height *= max_size / width;
-                    width = max_size;
-                }
-            } else {
-                if (height > max_size) {
-                    width *= max_size / height;
-                    height = max_size;
-                }
-            }
-            canvas.width = width;
-            canvas.height = height;
-            canvas.getContext('2d').drawImage(image, 0, 0, width, height);
-            var dataUrl = canvas.toDataURL('image/jpeg');
-            var resizedImage = dataURLToBlob(dataUrl);
-            
-            resizedImgEl.src = dataUrl
-
-            console.log(resizedImage, dataUrl);
-        }
-        image.src = readerEvent.target.result;
-    }
-    reader.readAsDataURL(file);
+    resizeImage(file).then(function(obj) {
+      resizedImgEl.src = obj.base64
+    })
   })
 });
+
+function resizeImage(file, max_size = 544) {
+  return new Promise(function(resolve, reject) {
+    try {
+      var reader = new FileReader();
+      reader.onload = function (readerEvent) {
+          var image = new Image();
+          image.onload = function () {
+
+              // Resize the image
+              var canvas = document.createElement('canvas'),
+                  width = image.width,
+                  height = image.height;
+              if (width > height) {
+                  if (width > max_size) {
+                      height *= max_size / width;
+                      width = max_size;
+                  }
+              } else {
+                  if (height > max_size) {
+                      width *= max_size / height;
+                      height = max_size;
+                  }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+              var dataUrl = canvas.toDataURL('image/jpeg');
+              var resizedImage = dataURLToBlob(dataUrl);
+              
+              resolve({file: resizedImage, base64: dataUrl })
+          }
+          image.src = readerEvent.target.result;
+      }
+      reader.readAsDataURL(file);
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
 
 /* Utility function to convert a canvas to a BLOB */
 var dataURLToBlob = function(dataURL) {
